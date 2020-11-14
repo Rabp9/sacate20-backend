@@ -17,10 +17,10 @@ class PostsController extends AppController
      * @return \Cake\Http\Response|null|void Renders view
      */
     public function index() {
-        $posts = $this->Posts->findAll();
+        $posts = $this->Posts->find();
 
         $this->set(compact('posts'));
-        $this->viewBuilder()->setOption('serialize', true);
+        $this->viewBuilder()->setOption('serialize', 'posts');
     }
 
     /**

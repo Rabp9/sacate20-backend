@@ -16,14 +16,11 @@ class TagsController extends AppController
      *
      * @return \Cake\Http\Response|null|void Renders view
      */
-    public function index()
-    {
-        $this->paginate = [
-            'contain' => ['States'],
-        ];
-        $tags = $this->paginate($this->Tags);
+    public function index() {
+        $tags = $this->Tags->find();
 
         $this->set(compact('tags'));
+        $this->viewBuilder()->setOption('serialize', true);
     }
 
     /**
@@ -33,13 +30,11 @@ class TagsController extends AppController
      * @return \Cake\Http\Response|null|void Renders view
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function view($id = null)
-    {
-        $tag = $this->Tags->get($id, [
-            'contain' => ['States'],
-        ]);
+    public function view($id = null) {
+        $tag = $this->Tags->get($id);
 
         $this->set(compact('tag'));
+        $this->viewBuilder()->setOption('serialize', true);
     }
 
     /**
@@ -47,20 +42,20 @@ class TagsController extends AppController
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
-    public function add()
-    {
-        $tag = $this->Tags->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $tag = $this->Tags->patchEntity($tag, $this->request->getData());
-            if ($this->Tags->save($tag)) {
-                $this->Flash->success(__('The tag has been saved.'));
+    public function add() {
+        $this->request->allowMethod('POST');
+        $tag = $this->Tags->newEntity($this->request->getData());
+        $state = $this->Tags->States->get(1);
+        $tag->state = $state;
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The tag could not be saved. Please, try again.'));
+        if ($this->Tags->save($tag)) {
+            $message = 'El tag fue registrado correctamente';
+        } else {
+            $message = 'El tag no fue registrado correctamente';
+            $errors = $tag->getErrors();
         }
-        $states = $this->Tags->States->find('list', ['limit' => 200]);
-        $this->set(compact('tag', 'states'));
+        $this->set(compact('tag', 'message', 'errors'));
+        $this->viewBuilder()->setOption('serialize', true);
     }
 
     /**
@@ -70,41 +65,65 @@ class TagsController extends AppController
      * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function edit($id = null)
-    {
-        $tag = $this->Tags->get($id, [
-            'contain' => [],
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $tag = $this->Tags->patchEntity($tag, $this->request->getData());
-            if ($this->Tags->save($tag)) {
-                $this->Flash->success(__('The tag has been saved.'));
-
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The tag could not be saved. Please, try again.'));
+    public function edit($id = null) {
+        $this->request->allowMethod('PUT');
+        $tag = $this->Tags->patchEntity($this->Tags->get($id), $this->request->getData());
+        
+        if ($this->Tags->save($tag)) {
+            $message = 'El tag fue modificado correctamente';
+        } else {
+            $message = 'El tag no fue modificado correctamente';
+            $errors = $tag->getErrors();
         }
-        $states = $this->Tags->States->find('list', ['limit' => 200]);
-        $this->set(compact('tag', 'states'));
+        $this->set(compact('tag', 'message', 'errors'));
+        $this->viewBuilder()->setOption('serialize', true);
     }
 
     /**
-     * Delete method
+     * Enable method
      *
-     * @param string|null $id Tag id.
+     * @param string|null $id Interseccione id.
      * @return \Cake\Http\Response|null|void Redirects to index.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function delete($id = null)
-    {
-        $this->request->allowMethod(['post', 'delete']);
+    public function enable() {
+        $this->request->allowMethod('POST');
+        $id = $this->request->getData('id');
         $tag = $this->Tags->get($id);
-        if ($this->Tags->delete($tag)) {
-            $this->Flash->success(__('The tag has been deleted.'));
+        $state = $this->Tags->States->get(1);
+        $tag->state = $state;
+        
+        if ($this->Tags->save($tag)) {
+            $message = 'El tag fue habilitado correctamente';
         } else {
-            $this->Flash->error(__('The tag could not be deleted. Please, try again.'));
+            $message = 'El tag no fue habilitado correctamente';
+            $errors = $tag->getErrors();
         }
-
-        return $this->redirect(['action' => 'index']);
+        $this->set(compact('tag', 'message', 'errors'));
+        $this->viewBuilder()->setOption('serialize', true);
+    }
+    
+    /**
+     * Disable method
+     *
+     * @param string|null $id Interseccione id.
+     * @return \Cake\Http\Response|null|void Redirects to index.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function disable() {
+        $this->request->allowMethod('POST');
+        $id = $this->request->getData('id');
+        $tag = $this->Tags->get($id);
+        $state = $this->Tags->States->get(2);
+        $tag->state = $state;
+        
+        if ($this->Tags->save($tag)) {
+            $message = 'El tag fue deshabilitado correctamente';
+        } else {
+            $message = 'El tag no fue deshabilitado correctamente';
+            $errors = $tag->getErrors();
+        }
+        $this->set(compact('tag', 'message', 'errors'));
+        $this->viewBuilder()->setOption('serialize', true);
     }
 }

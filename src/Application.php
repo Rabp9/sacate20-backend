@@ -56,6 +56,7 @@ class Application extends BaseApplication
             $this->addPlugin('DebugKit');
         }
 
+        $this->addPlugin('Cors');
         // Load more plugins here
     }
 
